@@ -1,33 +1,30 @@
 import 'package:json_annotation/json_annotation.dart';
 
-part 'exchange_rate.g.dart'
+part 'exchange_rate.g.dart';
 
-
-class   ExchangeRate{
-
-  @JsonKey("symbol")
+@JsonSerializable()
+class ExchangeRate {
+  @JsonKey(name: "symbol")
   String symbol;
 
-  @JsonKey("currency")
+  @JsonKey(name: "currency")
   String currency;
 
-  @JsonKey("product")
+  @JsonKey(name: "product")
   String product;
 
-  @JsonKey("currency")
-  String currency;
-
-  @JsonKey("bid")
+  @JsonKey(name: "bid")
   String bid;
 
-  @JsonKey("ask")
+  @JsonKey(name: "ask")
   String ask;
 
-  @JsonKey("expires_in_seconds")
+  @JsonKey(name: "expires_in_seconds")
   int expires_in_seconds;
 
   ExchangeRate();
 
-   factory ExchangeRate.fromJson(Map<String, dynamic> json) => _$ExchangeRateFromJson(json);
+  factory ExchangeRate.fromJson(Map<String, dynamic> json) =>
+      _$ExchangeRateFromJson(json);
   Map<String, dynamic> toJson() => _$ExchangeRateToJson(this);
 }

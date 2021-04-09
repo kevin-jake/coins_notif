@@ -1,14 +1,11 @@
-  
 import 'package:dio/dio.dart';
 
-
-
-class HttpService{
+class HttpService {
   Dio _dio;
 
-  final baseUrl = "https://quote.coins.ph/v2/markets";
+  final baseUrl = "https://quote.coins.ph";
 
-  HttpService(){
+  HttpService() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
     ));
@@ -16,8 +13,7 @@ class HttpService{
     initializeInterceptors();
   }
 
-
-  Future<Response> getRequest(String endPoint) async{
+  Future<Response> getRequest(String endPoint) async {
     Response response;
 
     try {
@@ -28,20 +24,15 @@ class HttpService{
     }
 
     return response;
-
   }
 
-
-  initializeInterceptors(){
-    _dio.interceptors.add(InterceptorsWrapper(
-      onError: (error){
-        print(error.message);
-      },
-      onRequest: (request){
-        print("${request.method} ${request.path}");
-      },
-      onResponse: (response){
-        print(response.data);
-      }
-    ));
+  initializeInterceptors() {
+    _dio.interceptors.add(InterceptorsWrapper(onError: (error) {
+      print(error.message);
+    }, onRequest: (request) {
+      print("${request.method} ${request.path}");
+    }, onResponse: (response) {
+      print(response.data);
+    }));
   }
+}
