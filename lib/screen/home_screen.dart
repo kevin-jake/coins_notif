@@ -13,7 +13,6 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   HttpService http;
 
-  MarketResp marketResponse;
   ExchangeRate btc_to_php;
   bool isLoading = false;
 
@@ -21,12 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Response response;
     try {
       isLoading = true;
-      response = await http.getRequest("/v2/markets");
+      response = await http.getRequest("/v2/markets/BTC-PHP");
       isLoading = false;
       if (response.statusCode == 200) {
         setState(() {
-          marketResponse = MarketResp.fromJson(response.data);
-          btc_to_php = marketResponse.markets[8];
+          btc_to_php = ExchangeRate.fromJson(response.data);
         });
       } else {
         print("There is some problem status code not 200");
