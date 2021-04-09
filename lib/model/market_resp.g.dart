@@ -8,7 +8,7 @@ part of 'market_resp.dart';
 
 MarketResp _$MarketRespFromJson(Map<String, dynamic> json) {
   return MarketResp()
-    ..market = (json['market'] as List)
+    ..markets = (json['markets'] as List)
         ?.map((e) =>
             e == null ? null : ExchangeRate.fromJson(e as Map<String, dynamic>))
         ?.toList();
@@ -16,5 +16,5 @@ MarketResp _$MarketRespFromJson(Map<String, dynamic> json) {
 
 Map<String, dynamic> _$MarketRespToJson(MarketResp instance) =>
     <String, dynamic>{
-      'market': instance.market,
+      'markets': instance.markets,
     };

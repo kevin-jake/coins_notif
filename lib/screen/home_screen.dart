@@ -1,5 +1,6 @@
 import 'package:coins_notif/model/market_resp.dart';
 import 'package:coins_notif/model/exchange_rate.dart';
+import 'package:coins_notif/http_service.dart';
 import 'package:flutter/material.dart';
 import 'package:coins_notif/http_service.dart';
 import 'package:dio/dio.dart';
@@ -25,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (response.statusCode == 200) {
         setState(() {
           marketResponse = MarketResp.fromJson(response.data);
-          btc_to_php = marketResponse.market[8];
+          btc_to_php = marketResponse.markets[8];
         });
       } else {
         print("There is some problem status code not 200");
@@ -37,6 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    http = HttpService();
+    getRate();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -44,27 +52,31 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator())
-          : Container(
-              width: double.infinity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Symbol: ${btc_to_php.symbol}"),
-                  Container(
-                    height: 2,
+          : btc_to_php != null
+              ? Container(
+                  width: double.infinity,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("Symbol: ${btc_to_php.symbol}"),
+                      Container(
+                        height: 2,
+                      ),
+                      Text("Currency: ${btc_to_php.currency}"),
+                      Container(
+                        height: 2,
+                      ),
+                      Text("Sell Price: Php ${btc_to_php.bid}"),
+                      Container(
+                        height: 2,
+                      ),
+                      Text("Buy Price: Php ${btc_to_php.ask}"),
+                    ],
                   ),
-                  Text("Currency: ${btc_to_php.currency}"),
-                  Container(
-                    height: 2,
-                  ),
-                  Text("Sell Price: Php ${btc_to_php.bid}"),
-                  Container(
-                    height: 2,
-                  ),
-                  Text("Buy Price: Php ${btc_to_php.ask}"),
-                ],
-              ),
-            ),
+                )
+              : Center(
+                  child: Text("No Data"),
+                ),
     );
   }
 }

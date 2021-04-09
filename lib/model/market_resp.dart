@@ -7,8 +7,8 @@ part 'market_resp.g.dart';
 class MarketResp {
   MarketResp();
 
-  @JsonKey(name: "market")
-  List<ExchangeRate> market;
+  @JsonKey(name: "markets")
+  List<ExchangeRate> markets;
 
   factory MarketResp.fromJson(Map<String, dynamic> json) =>
       _$MarketRespFromJson(json);
