@@ -1,9 +1,12 @@
 import 'package:coins_notif/model/market_resp.dart';
 import 'package:coins_notif/model/exchange_rate.dart';
 import 'package:coins_notif/http_service.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:coins_notif/http_service.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -15,6 +18,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   ExchangeRate btc_to_php;
   bool isLoading = false;
+  final FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  FlutterLocalNotificationsPlugin fltNotification;
 
   Future getRate() async {
     Response response;
@@ -37,13 +43,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
+    notifPermission();
+    initMessaging();
     http = HttpService();
     getRate();
     super.initState();
   }
 
+  void getToken() async {
+    print(await messaging.getToken());
+  }
+
   @override
   Widget build(BuildContext context) {
+    getToken();
     return Scaffold(
       appBar: AppBar(
         title: Text("Get Exchange Rate"),
@@ -69,12 +82,68 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 2,
                       ),
                       Text("Buy Price: Php ${btc_to_php.ask}"),
+                      MaterialButton(
+                        color: Colors.green,
+                        onPressed: () async {
+                          await messaging
+                              .subscribeToTopic('sendmeNotification');
+                        },
+                        child: Text("Susbcribe To Topic"),
+                      ),
+                      MaterialButton(
+                        color: Colors.blue,
+                        onPressed: () async {
+                          await messaging
+                              .unsubscribeFromTopic('sendmeNotification');
+                        },
+                        child: Text("UnSusbcribe To Topic"),
+                      ),
                     ],
                   ),
                 )
               : Center(
                   child: Text("No Data"),
                 ),
+    );
+  }
+
+  void initMessaging() {
+    var androiInit = AndroidInitializationSettings('ic_launcher');
+
+    var initSetting = InitializationSettings(android: androiInit);
+
+    fltNotification = FlutterLocalNotificationsPlugin();
+
+    fltNotification.initialize(initSetting);
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      showNotification(message);
+    });
+  }
+
+  void showNotification(message) async {
+    RemoteNotification notification = message.notification;
+    AndroidNotification android = message.notification?.android;
+    var androidDetails =
+        AndroidNotificationDetails('1', 'channelName', 'channel Description');
+
+    var generalNotificationDetails =
+        NotificationDetails(android: androidDetails);
+
+    await fltNotification.show(notification.hashCode, notification.title,
+        notification.body, generalNotificationDetails,
+        payload: 'Notification');
+  }
+
+  void notifPermission() async {
+    NotificationSettings settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
     );
   }
 }
