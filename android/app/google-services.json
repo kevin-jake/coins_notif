@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "545782595606",
+    "project_id": "coins-notification",
+    "storage_bucket": "coins-notification.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:545782595606:android:271da8843f1c6550e63537",
+        "android_client_info": {
+          "package_name": "com.example.coins_notif"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "545782595606-q5fr6odu1ku2cbhkelrillijp3d9m00j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCj8RayLbIDDhHDwQ0wbr9rLHQylKCtSCA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "545782595606-q5fr6odu1ku2cbhkelrillijp3d9m00j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
