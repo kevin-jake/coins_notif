@@ -28,11 +28,40 @@
 
  };
 
-// exports.handler = async (event) => {
-//     // TODO implement
-//     const response = {
-//         statusCode: 200,
-//         body: JSON.stringify('Hello from Lambda!'),
-//     };
-//     return response;
-// };
+exports.handler = async (event) => {
+
+
+    //Add permissions
+    
+
+    // const TargetArn = 'arn:aws:sns:us-east-1:536530634742:endpoint/GCM/CoinsNotif/b37d3079-c5c4-3999-adf7-9eaa2dadce6b';
+    // let payload = {
+    //     default: 'default',
+    //     GCM : {
+    //         notification: {
+    //             body: "Body Text",
+    //             title: "Title text",
+    //             sound: "default"
+    //         }
+    //     }
+        
+    // }
+    
+    // payload.GCM = JSON.stringify(payload.GCM);
+    // payload = JSON.stringify(payload);
+    
+    // const params_sns = {
+    //     Message: payload,
+    //     TargetArn: TargetArn,
+    //     MessageStructure: 'json'
+    // }
+    
+    // const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
+    // await new_sns.publish(params_sns).promise();
+
+    // // TODO implement
+    // const response = {
+    //     statusCode: 200,
+    //     body: JSON.stringify('Hello from Lambda!'),
+    // };
+};
