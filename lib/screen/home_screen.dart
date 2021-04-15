@@ -82,22 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         height: 2,
                       ),
                       Text("Buy Price: Php ${btc_to_php.ask}"),
-                      MaterialButton(
-                        color: Colors.green,
-                        onPressed: () async {
-                          await messaging
-                              .subscribeToTopic('sendmeNotification');
-                        },
-                        child: Text("Susbcribe To Topic"),
-                      ),
-                      MaterialButton(
-                        color: Colors.blue,
-                        onPressed: () async {
-                          await messaging
-                              .unsubscribeFromTopic('sendmeNotification');
-                        },
-                        child: Text("UnSusbcribe To Topic"),
-                      ),
                     ],
                   ),
                 )
