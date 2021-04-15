@@ -33,13 +33,17 @@
 });
         
     var sell_price = formatter.format(Number(result.bid));
+    var coins_php_val = formatter.format(Number(result.bid) * 0.00180026);
+    var profit = formatter.format((Number(result.bid) * 0.00180026) - 5000);
     const TargetArn = 'arn:aws:sns:us-east-1:229842163266:endpoint/GCM/CoinsNotif/b37d3079-c5c4-3999-adf7-9eaa2dadce6b';
     let payload = {
         default: 'default',
         GCM : {
             notification: {
-                body: "Selling Price: " + sell_price,
-                title: result.symbol, 
+                body: " Selling Price: " + sell_price + 
+                "\n Total Price of your BTC on Coins: " + coins_php_val +
+                "\n Total Profit: " + profit ,
+                title: result.symbol,  
                 sound: "default"
             }
         }
@@ -48,7 +52,7 @@
     
     payload.GCM = JSON.stringify(payload.GCM);
     payload = JSON.stringify(payload);
-    
+    console.log(payload);
     const params_sns = {
         Message: payload,
         TargetArn: TargetArn,

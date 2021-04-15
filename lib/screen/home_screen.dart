@@ -108,8 +108,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void showNotification(message) async {
     RemoteNotification notification = message.notification;
     AndroidNotification android = message.notification?.android;
-    var androidDetails =
-        AndroidNotificationDetails('1', 'channelName', 'channel Description');
+    var androidDetails = AndroidNotificationDetails(
+        '1', 'channelName', 'channel Description',
+        styleInformation: BigTextStyleInformation(''));
 
     var generalNotificationDetails =
         NotificationDetails(android: androidDetails);
