@@ -1,0 +1,38 @@
+ var https = require('https');
+  exports.handler = (event, context, callback) => {
+       var params = {
+                    host: "quote.coins.ph",
+                    path: "/v2/markets/BTC-PHP"
+    
+                    };
+    var req = https.request(params, function(res) {
+    let data = '';
+    console.log('STATUS: ' + res.statusCode);
+    res.setEncoding('utf8');
+    res.on('data', function(chunk) {
+        data += chunk;
+    });
+    res.on('end', function() {
+        console.log("DONE");
+        console.log(JSON.parse(data));
+        display(JSON.parse(data));
+    });
+  });
+   req.end();
+   
+    function display(result) {
+        console.log(result.symbol);
+        data_res = result;
+        return result;
+    }
+
+ };
+
+// exports.handler = async (event) => {
+//     // TODO implement
+//     const response = {
+//         statusCode: 200,
+//         body: JSON.stringify('Hello from Lambda!'),
+//     };
+//     return response;
+// };
