@@ -1,6 +1,15 @@
  var https = require('https');
  var AWS = require('aws-sdk');
   exports.handler =  (event, context, callback) => {
+      console.log(event);
+      var invested_price;
+      var bought_price;
+    if (event.httpMethod == 'POST') {
+        let body = JSON.parse(event.body);
+        invested_price = body.invested_price;
+        bought_price = body.bought_price
+        console.log(event.body);
+    }
        var params = {
                     host: "quote.coins.ph",
                     path: "/v2/markets/BTC-PHP"
@@ -16,12 +25,12 @@
     res.on('end', function() {
         console.log("DONE");
         console.log(JSON.parse(data));
-        display(JSON.parse(data));
+        display(JSON.parse(data), invested_price, bought_price);
     });
   });
    req.end();
    
-  async  function display(result) {
+  async  function display(result, invested_price, bought_price) {
         console.log(result);
         
         var formatter = new Intl.NumberFormat('en-US', {
@@ -31,11 +40,12 @@
   //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
   //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 });
-        
+    var currentBTC = invested_price/bought_price;
     var sell_price = formatter.format(Number(result.bid));
-    var coins_php_val = formatter.format(Number(result.bid) * 0.00180026);
-    var profit = formatter.format((Number(result.bid) * 0.00180026) - 5000);
-    const TargetArn = 'arn:aws:sns:us-east-1:229842163266:endpoint/GCM/CoinsNotif/b37d3079-c5c4-3999-adf7-9eaa2dadce6b';
+    var coins_php_val = formatter.format(Number(result.bid) * currentBTC);
+    var profit = formatter.format((Number(result.bid) * currentBTC) - invested_price);
+//CHANGE ARN to the right target
+    const TargetArn = 'arn:aws:sns:us-east-1:773314055569:endpoint/GCM/CoinsNotifSNS/10071485-796a-3249-9ddf-cc7340411f44';
     let payload = {
         default: 'default',
         GCM : {
@@ -68,16 +78,3 @@
     }
 
  };
-
-// exports.handler = async (event) => {
-
-
-    //Add permissions
-    
-
-    // // TODO implement
-    // const response = {
-    //     statusCode: 200,
-    //     body: JSON.stringify('Hello from Lambda!'),
-    // };
-//};
