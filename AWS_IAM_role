@@ -4,7 +4,7 @@
         {
             "Effect": "Allow",
             "Action": "logs:CreateLogGroup",
-            "Resource": "arn:aws:logs:us-east-1:229842163266:*"
+            "Resource": "arn:aws:logs:us-east-1:773314055569:*"
         },
         {
             "Effect": "Allow",
@@ -13,16 +13,17 @@
                 "logs:PutLogEvents"
             ],
             "Resource": [
-                "arn:aws:logs:us-east-1:229842163266:log-group:/aws/lambda/CoinsNotif:*"
+                "arn:aws:logs:us-east-1:773314055569:log-group:/aws/lambda/CoinsNotif:*"
             ]
         },
         {
             "Effect": "Allow",
             "Action": [
-                "SNS:Publish"
+                "SNS:Publish",
+                "SNS:ListEndpointsByPlatformApplication"
             ],
             "Resource": [
-                "arn:aws:sns:us-east-1:229842163266:app/GCM/CoinsNotif"
+                "arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS"
             ]
         }
     ]
