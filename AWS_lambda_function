@@ -4,10 +4,12 @@
       console.log(event);
       var invested_price;
       var bought_price;
+      var desired_profit;
     if (event.httpMethod == 'POST') {
         let body = JSON.parse(event.body);
         invested_price = body.invested_price;
-        bought_price = body.bought_price
+        bought_price = body.bought_price;
+        desired_profit = body.desired_profit;
         console.log(event.body);
     }
        var params = {
@@ -23,17 +25,15 @@
         data += chunk;
     });
     res.on('end', function() {
-        console.log("DONE");
-        console.log(JSON.parse(data));
-        display(JSON.parse(data), invested_price, bought_price);
+        display(JSON.parse(data), invested_price, bought_price, desired_profit);
     });
   });
    req.end();
    
-  async  function display(result, invested_price, bought_price) {
+  async  function display(result, invested_price, bought_price, desired_profit) {
         console.log(result);
         
-        var formatter = new Intl.NumberFormat('en-US', {
+  var formatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'PHP',
   // These options are needed to round to whole numbers if that's what you want.
@@ -41,18 +41,21 @@
   //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
 });
     var currentBTC = invested_price/bought_price;
-    var sell_price = formatter.format(Number(result.bid));
-    var coins_php_val = formatter.format(Number(result.bid) * currentBTC);
-    var profit = formatter.format((Number(result.bid) * currentBTC) - invested_price);
+    var sell_price = Number(result.bid);
+    var coins_php_val = Number(result.bid) * currentBTC;
+    var profit = (Number(result.bid) * currentBTC) - invested_price;
+    
+if (profit > desired_profit){
+    console.log("-------------------PUBLISHING TO THE DEVICE----------------");
 //CHANGE ARN to the right target
     const TargetArn = 'arn:aws:sns:us-east-1:773314055569:endpoint/GCM/CoinsNotifSNS/10071485-796a-3249-9ddf-cc7340411f44';
     let payload = {
         default: 'default',
         GCM : {
             notification: {
-                body: " Selling Price: " + sell_price + 
-                "\n Total Price of your BTC on Coins: " + coins_php_val +
-                "\n Total Profit: " + profit ,
+                body: " Selling Price: " + formatter.format(sell_price) + 
+                "\n Total Price of your BTC on Coins: " + formatter.format(coins_php_val) +
+                "\n Total Profit: " + formatter.format(profit) ,
                 title: result.symbol,  
                 sound: "default"
             }
@@ -71,7 +74,7 @@
     
     const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
     await new_sns.publish(params_sns).promise();
-
+};
         
         
         return result;
