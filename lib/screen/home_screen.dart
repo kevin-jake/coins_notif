@@ -20,6 +20,10 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = false;
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
+  TextEditingController investController = TextEditingController();
+  TextEditingController boughtController = TextEditingController();
+  TextEditingController profitController = TextEditingController();
+
   FlutterLocalNotificationsPlugin fltNotification;
 
   Future getRate() async {
@@ -58,37 +62,147 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     getToken();
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Get Exchange Rate"),
-      ),
-      body: isLoading
-          ? Center(child: CircularProgressIndicator())
-          : btc_to_php != null
-              ? Container(
-                  width: double.infinity,
-                  child: Column(
+        appBar: AppBar(
+          title: Text("Get Exchange Rate"),
+        ),
+        body: isLoading
+            ? Container(
+                width: double.infinity,
+                padding: EdgeInsets.all(20),
+                child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text("Symbol: ${btc_to_php.symbol}"),
+                      CircularProgressIndicator(),
+                      Container(
+                        height: 20,
+                      ),
+                      SizedBox(
+                          width: 350,
+                          child: TextField(
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter Invested Price'),
+                            controller: investController,
+                          )),
                       Container(
                         height: 2,
                       ),
-                      Text("Currency: ${btc_to_php.currency}"),
-                      Container(
-                        height: 2,
-                      ),
-                      Text("Sell Price: Php ${btc_to_php.bid}"),
-                      Container(
-                        height: 2,
-                      ),
-                      Text("Buy Price: Php ${btc_to_php.ask}"),
-                    ],
-                  ),
-                )
-              : Center(
-                  child: Text("No Data"),
-                ),
-    );
+                      SizedBox(
+                          width: 350,
+                          child: TextField(
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter bought Price'),
+                            controller: boughtController,
+                          )),
+                      Container(height: 2),
+                      SizedBox(
+                          width: 350,
+                          child: TextField(
+                            decoration: InputDecoration(
+                                border: OutlineInputBorder(),
+                                hintText: 'Enter desired Profit'),
+                            controller: profitController,
+                          )),
+                      Container(height: 20),
+                      ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                    ]))
+            : btc_to_php != null
+                ? Container(
+                    width: double.infinity,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text("Symbol: ${btc_to_php.symbol}"),
+                        Container(
+                          height: 2,
+                        ),
+                        Text("Currency: ${btc_to_php.currency}"),
+                        Container(
+                          height: 2,
+                        ),
+                        Text("Sell Price: Php ${btc_to_php.bid}"),
+                        Container(
+                          height: 2,
+                        ),
+                        Text("Buy Price: Php ${btc_to_php.ask}"),
+                        Container(
+                          height: 20,
+                        ),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter Invested Price'),
+                              controller: investController,
+                            )),
+                        Container(
+                          height: 8,
+                        ),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter bought Price'),
+                              controller: boughtController,
+                            )),
+                        Container(
+                          height: 8,
+                        ),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter desired Profit'),
+                              controller: profitController,
+                            )),
+                        Container(height: 20),
+                        ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                      ],
+                    ),
+                  )
+                : Container(
+                    child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                        Text("No Data"),
+                        Container(
+                          height: 20,
+                        ),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter Invested Price'),
+                              controller: investController,
+                            )),
+                        Container(
+                          height: 2,
+                        ),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter bought Price'),
+                              controller: boughtController,
+                            )),
+                        Container(height: 2),
+                        SizedBox(
+                            width: 350,
+                            child: TextField(
+                              decoration: InputDecoration(
+                                  border: OutlineInputBorder(),
+                                  hintText: 'Enter desired Profit'),
+                              controller: profitController,
+                            )),
+                        Container(height: 20),
+                        ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                      ])));
   }
 
   void initMessaging() {
