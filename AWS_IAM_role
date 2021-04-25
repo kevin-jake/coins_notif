@@ -20,7 +20,8 @@
             "Effect": "Allow",
             "Action": [
                 "SNS:Publish",
-                "SNS:ListEndpointsByPlatformApplication"
+                "SNS:ListEndpointsByPlatformApplication",
+                "SNS:CreatePlatformEndpoint"
             ],
             "Resource": [
                 "arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS"

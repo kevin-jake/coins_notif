@@ -5,11 +5,13 @@
       var invested_price;
       var bought_price;
       var desired_profit;
+      var token;
     if (event.httpMethod == 'POST') {
         let body = JSON.parse(event.body);
         invested_price = body.invested_price;
         bought_price = body.bought_price;
         desired_profit = body.desired_profit;
+        token = body.token;
         console.log(event.body);
     }
        var params = {
@@ -29,7 +31,7 @@
     });
   });
    req.end();
-   
+  
   async  function display(result, invested_price, bought_price, desired_profit) {
         console.log(result);
         
@@ -45,10 +47,52 @@
     var coins_php_val = Number(result.bid) * currentBTC;
     var profit = (Number(result.bid) * currentBTC) - invested_price;
     
-if (profit > desired_profit){
+// if (profit > desired_profit){
+if (true) {
     console.log("-------------------PUBLISHING TO THE DEVICE----------------");
+    
 //CHANGE ARN to the right target
-    const TargetArn = 'arn:aws:sns:us-east-1:773314055569:endpoint/GCM/CoinsNotifSNS/10071485-796a-3249-9ddf-cc7340411f44';
+const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
+var TargetArn;
+var PlatformApplicationArn = 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS';
+var listedEndpoints;
+
+var listparams = {
+  PlatformApplicationArn: PlatformApplicationArn
+};
+
+await new_sns.listEndpointsByPlatformApplication(listparams, async function(err, data) {
+  if (err) console.log(err, err.stack); // an error occurred
+  else     {
+    //   console.log(data.Endpoints);
+      listedEndpoints = data.Endpoints;
+      listedEndpoints.forEach(function (item) {
+ if (item.Attributes.Token == token) {
+     TargetArn = item.EndpointArn;
+ }
+});
+
+// console.log("------------Target ARN from list: " + TargetArn);
+      
+  }
+}).promise();
+
+if (!TargetArn) {
+  var paramscreate = {
+ PlatformApplicationArn: PlatformApplicationArn,
+  Token: token
+};
+await new_sns.createPlatformEndpoint(paramscreate, async function(err, data) {
+  if (err) console.log(err, err.stack); // an error occurred
+  else    {
+    //   console.log("------------from CreatePlatformEndpoint---------------");
+    //   console.log(data);
+      TargetArn = data.EndpointArn;
+  }         // successful response
+}).promise();
+// console.log("------------Target ARN from create: " + TargetArn);
+}
+
     let payload = {
         default: 'default',
         GCM : {
@@ -65,22 +109,17 @@ if (profit > desired_profit){
     
     payload.GCM = JSON.stringify(payload.GCM);
     payload = JSON.stringify(payload);
-    console.log(payload);
     const params_sns = {
         Message: payload,
         TargetArn: TargetArn,
         MessageStructure: 'json'
     }
+    console.log("------------------------FINAL MESSAGE---------------------");
+    console.log(params_sns);
     
-    const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
-var params = {
-  PlatformApplicationArn: 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS'
-};
-new_sns.listEndpointsByPlatformApplication(params, function(err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else     console.log(data);           // successful response
-});
-    await new_sns.publish(params_sns).promise();
+
+
+//     await new_sns.publish(params_sns).promise();
 };
         
         
