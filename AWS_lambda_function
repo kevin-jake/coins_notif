@@ -23,18 +23,20 @@
         "headers": {"content-Type": "application/json"},
         "body": JSON.stringify(body)
     };
-    await getRequest(params,body).then(data =>{
-        console.log(data);
-    }).catch((err) => {
-        console.log(err);
-    })
-    callback(null, response);
-};
+  await getRequest(params,body);
+//   .then(data =>{
+//         console.log(data);
+//     }).catch((err) => {
+//         console.log(err);
+//     })
 
+};
+    callback(null, response);
  };
  
  function getRequest(params,body) {
-    var req = https.get(params, function(res) {
+     return new Promise((resolve) => {
+             var req = https.get(params, function(res) {
     let data = '';
     // console.log('STATUS: ' + res.statusCode);
     res.setEncoding('utf8');
@@ -42,16 +44,18 @@
         data += chunk;
     });
     res.on('end', async function() {
-        await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data =>{
-        console.log(data);
+        resolve(await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data =>{
+        console.log("TEST");
     }).catch((err) => {
         console.log(err);
-    });
-    });
-  }).promise();
+    })
+    )});
+  })
+     })
+
 }
  
- function display(result, invested_price, bought_price, desired_profit, token) {
+async function display(result, invested_price, bought_price, desired_profit, token) {
      
     var currentBTC = invested_price/bought_price;
     var sell_price = Number(result.bid);
@@ -65,7 +69,7 @@
         "coins_php_val":coins_php_val,
         "result": result
     }
-    
+  return await awsSNSfunctions(computed);
  }
   
   async function awsSNSfunctions(params) {
