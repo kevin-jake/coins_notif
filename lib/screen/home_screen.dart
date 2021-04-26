@@ -1,12 +1,13 @@
-import 'package:coins_notif/model/market_resp.dart';
+import 'dart:convert';
+
 import 'package:coins_notif/model/exchange_rate.dart';
 import 'package:coins_notif/http_service.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:coins_notif/model/post_model.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:coins_notif/http_service.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -14,23 +15,26 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  HttpService http;
+  HttpService http_serv;
 
   ExchangeRate btc_to_php;
   bool isLoading = false;
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
+
+  PostModel _post;
 
   TextEditingController investController = TextEditingController();
   TextEditingController boughtController = TextEditingController();
   TextEditingController profitController = TextEditingController();
 
   FlutterLocalNotificationsPlugin fltNotification;
+  var token_global;
 
   Future getRate() async {
     Response response;
     try {
       isLoading = true;
-      response = await http.getRequest("/v2/markets/BTC-PHP");
+      response = await http_serv.getRequest("/v2/markets/BTC-PHP");
       isLoading = false;
       if (response.statusCode == 200) {
         setState(() {
@@ -45,17 +49,38 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<PostModel> submitData(String investedPrice, String boughtPrice,
+      String desiredProfit, String token) async {
+    var resp = await http.post(
+        Uri.https(
+            'jdkc8ptwk6.execute-api.us-east-1.amazonaws.com', '/test/notify'),
+        body: jsonEncode({
+          "invested_price": int.parse(investedPrice),
+          "bought_price": int.parse(boughtPrice),
+          "desired_profit": int.parse(desiredProfit),
+          "token": token
+        }));
+    String jsonsDataString = resp.body;
+    if (resp.statusCode == 200) {
+      print(jsonsDataString);
+    } else {
+      print(jsonsDataString);
+      return null;
+    }
+  }
+
   @override
   void initState() {
     notifPermission();
     initMessaging();
-    http = HttpService();
+    http_serv = HttpService();
     getRate();
     super.initState();
   }
 
   void getToken() async {
-    print(await messaging.getToken());
+    token_global = await messaging.getToken();
+    print(token_global);
   }
 
   @override
@@ -105,7 +130,28 @@ class _HomeScreenState extends State<HomeScreen> {
                             controller: profitController,
                           )),
                       Container(height: 20),
-                      ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                      ElevatedButton(
+                          onPressed: () async {
+                            final String investedPrice = investController.text;
+                            final String boughtPrice = boughtController.text;
+                            final String desiredProfit = profitController.text;
+                            final String token = token_global;
+
+                            final PostModel postbody = await submitData(
+                                investedPrice,
+                                boughtPrice,
+                                desiredProfit,
+                                token);
+                            print(postbody);
+                            setState(() {
+                              _post = postbody;
+                            });
+                          },
+                          child: Text("Submit")),
+                      SizedBox(
+                        height: 32,
+                      ),
+                      _post == null ? Container() : Text("SUCCESSFUL POST!")
                     ]))
             : btc_to_php != null
                 ? Container(
@@ -160,7 +206,30 @@ class _HomeScreenState extends State<HomeScreen> {
                               controller: profitController,
                             )),
                         Container(height: 20),
-                        ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                        ElevatedButton(
+                            onPressed: () async {
+                              final String investedPrice =
+                                  investController.text;
+                              final String boughtPrice = boughtController.text;
+                              final String desiredProfit =
+                                  profitController.text;
+                              final String token = token_global;
+
+                              final PostModel postbody = await submitData(
+                                  investedPrice,
+                                  boughtPrice,
+                                  desiredProfit,
+                                  token);
+                              print(postbody);
+                              setState(() {
+                                _post = postbody;
+                              });
+                            },
+                            child: Text("Submit")),
+                        SizedBox(
+                          height: 32,
+                        ),
+                        _post == null ? Container() : Text("SUCCESSFUL POST!")
                       ],
                     ),
                   )
@@ -201,7 +270,30 @@ class _HomeScreenState extends State<HomeScreen> {
                               controller: profitController,
                             )),
                         Container(height: 20),
-                        ElevatedButton(onPressed: () {}, child: Text("Submit"))
+                        ElevatedButton(
+                            onPressed: () async {
+                              final String investedPrice =
+                                  investController.text;
+                              final String boughtPrice = boughtController.text;
+                              final String desiredProfit =
+                                  profitController.text;
+                              final String token = token_global;
+
+                              final PostModel postbody = await submitData(
+                                  investedPrice,
+                                  boughtPrice,
+                                  desiredProfit,
+                                  token);
+                              print(postbody);
+                              setState(() {
+                                _post = postbody;
+                              });
+                            },
+                            child: Text("Submit")),
+                        SizedBox(
+                          height: 32,
+                        ),
+                        _post == null ? Container() : Text("SUCCESSFUL POST!")
                       ])));
   }
 
