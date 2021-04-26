@@ -60,9 +60,10 @@ class _HomeScreenState extends State<HomeScreen> {
           "desired_profit": int.parse(desiredProfit),
           "token": token
         }));
-    String jsonsDataString = resp.body;
+    int jsonsDataString = resp.statusCode;
     if (resp.statusCode == 200) {
       print(jsonsDataString);
+      return PostModel();
     } else {
       print(jsonsDataString);
       return null;
