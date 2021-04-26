@@ -1,16 +1,23 @@
  var https = require('https');
  var AWS = require('aws-sdk');
+ AWS.config.update({region: 'us-east-1'});
   exports.handler =  async (event, context, callback) => {
       let response = {};
       let finalresp = {};
       let body = {};
+
       var params = {
                     host: "quote.coins.ph",
                     path: "/v2/markets/BTC-PHP"
                     };
     if (event.httpMethod == 'POST') {
         body = JSON.parse(event.body);
-    
+          var dbparams = {
+  TableName: 'DeviceTokens',
+  Key: {
+    'devicetoken': {S: body.token}
+  }
+};
     // The output from a Lambda proxy integration must be 
     // in the following JSON object. The 'headers' property 
     // is for custom response headers in addition to standard 
@@ -24,6 +31,7 @@
         "body": JSON.stringify(body)
     };
   await getRequest(params,body);
+  await dbfunctions(dbparams,body);
 //   .then(data =>{
 //         console.log(data);
 //     }).catch((err) => {
@@ -45,7 +53,6 @@
     });
     res.on('end', async function() {
         resolve(await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data =>{
-        console.log("TEST");
     }).catch((err) => {
         console.log(err);
     })
@@ -154,3 +161,44 @@ console.log("------------Target ARN from create: " + TargetArn);
 };
       
   }
+  
+  async function dbfunctions(params,body){
+      var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
+
+// Call DynamoDB to read the item from the table
+var dataresp = await ddb.getItem(params, function(err, data) {
+  if (err) {
+    console.log("Error", err);
+  } else {
+    // console.log("Success", data.Item);
+    return data;
+  }
+}).promise();
+console.log("LIST")
+console.log(dataresp.Item);
+
+if (!dataresp.Item) {
+    console.log("-----INSERTING DATA ON DB-------");
+var insertparams = {
+  TableName: 'DeviceTokens',
+  Item: {
+    'invested_price' : {N: body.invested_price.toString()},
+    'devicetoken' : {S: body.token },
+    'bought_price' : {N: body.bought_price.toString()},
+    'desired_profit' : {N: body.desired_profit.toString()},
+  }
+};
+
+// Call DynamoDB to add the item to the table
+var insertedDB = await ddb.putItem(insertparams, function(err, data) {
+  if (err) {
+    console.log("Error", err);
+  } else {
+    console.log("Success", data);
+    return data;
+  }
+}).promise();
+console.log(insertedDB);
+      
+      
+  }}
