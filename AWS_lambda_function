@@ -1,9 +1,13 @@
  var https = require('https');
  var AWS = require('aws-sdk');
-  exports.handler =  (event, context, callback) => {
+  exports.handler =  async (event, context, callback) => {
       let response = {};
       let finalresp = {};
       let body = {};
+      var params = {
+                    host: "quote.coins.ph",
+                    path: "/v2/markets/BTC-PHP"
+                    };
     if (event.httpMethod == 'POST') {
         body = JSON.parse(event.body);
     
@@ -19,12 +23,17 @@
         "headers": {"content-Type": "application/json"},
         "body": JSON.stringify(body)
     };
+    await getRequest(params,body).then(data =>{
+        console.log(data);
+    }).catch((err) => {
+        console.log(err);
+    })
+    callback(null, response);
 };
-       var params = {
-                    host: "quote.coins.ph",
-                    path: "/v2/markets/BTC-PHP"
-    
-                    };
+
+ };
+ 
+ function getRequest(params,body) {
     var req = https.get(params, function(res) {
     let data = '';
     // console.log('STATUS: ' + res.statusCode);
@@ -33,39 +42,49 @@
         data += chunk;
     });
     res.on('end', async function() {
-        finalresp = await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token);
-        console.log("************************************************************FINAL RESP: ");
-           console.log(finalresp);
+        await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data =>{
+        console.log(data);
+    }).catch((err) => {
+        console.log(err);
     });
-  });
-
-
-  
-  async  function display(result, invested_price, bought_price, desired_profit, token) {
-        
-  var formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'PHP',
-  // These options are needed to round to whole numbers if that's what you want.
-  //minimumFractionDigits: 0, // (this suffices for whole numbers, but will print 2500.10 as $2,500.1)
-  //maximumFractionDigits: 0, // (causes 2500.99 to be printed as $2,501)
-});
+    });
+  }).promise();
+}
+ 
+ function display(result, invested_price, bought_price, desired_profit, token) {
+     
     var currentBTC = invested_price/bought_price;
     var sell_price = Number(result.bid);
     var coins_php_val = Number(result.bid) * currentBTC;
     var profit = (Number(result.bid) * currentBTC) - invested_price;
+    var computed = {
+        "sell_price":sell_price,
+        "profit": profit,
+        "desired_profit":desired_profit,
+        "token": token,
+        "coins_php_val":coins_php_val,
+        "result": result
+    }
     
-if (profit > desired_profit){
+ }
+  
+  async function awsSNSfunctions(params) {
+  var formatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'PHP'
+});
+
+if (params.profit > params.desired_profit){
 // if (true) {
     console.log("-------------------PUBLISHING TO THE DEVICE----------------");
     
 //CHANGE ARN to the right target
 const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
 var TargetArn;
-var PlatformApplicationArn = 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS';
+const PlatformApplicationArn = 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS';
 var listedEndpoints;
 var createEndpoints;
-var listparams = {
+const listparams = {
   PlatformApplicationArn: PlatformApplicationArn
 };
 
@@ -77,7 +96,7 @@ listedEndpoints = await new_sns.listEndpointsByPlatformApplication(listparams, f
 }).promise();
         console.log(listedEndpoints.Endpoints);
       listedEndpoints.Endpoints.forEach(function (item) {
- if (item.Attributes.Token == token) {
+ if (item.Attributes.Token == params.token) {
      TargetArn = item.EndpointArn;
  }
 });
@@ -86,7 +105,7 @@ console.log("------------Target ARN from list: " + TargetArn)
 if (!TargetArn) {
   var paramscreate = {
  PlatformApplicationArn: PlatformApplicationArn,
-  Token: token
+  Token: params.token
 };
 createEndpoints = await new_sns.createPlatformEndpoint(paramscreate,  function(err, data) {
   if (err) console.log(err, err.stack); // an error occurred
@@ -105,10 +124,10 @@ console.log("------------Target ARN from create: " + TargetArn);
         default: 'default',
         GCM : {
             notification: {
-                body: " Selling Price: " + formatter.format(sell_price) + 
-                "\n Total Price of your BTC on Coins: " + formatter.format(coins_php_val) +
-                "\n Total Profit: " + formatter.format(profit) ,
-                title: result.symbol,  
+                body: " Selling Price: " + formatter.format(params.sell_price) + 
+                "\n Total Price of your BTC on Coins: " + formatter.format(params.coins_php_val) +
+                "\n Total Profit: " + formatter.format(params.profit) ,
+                title: params.result.symbol,  
                 sound: "default"
             }
         }
@@ -129,8 +148,5 @@ console.log("------------Target ARN from create: " + TargetArn);
 
     await new_sns.publish(params_sns).promise();
 };
-    }
-    
-callback(null, response);
-
- };
+      
+  }
