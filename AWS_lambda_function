@@ -1,240 +1,281 @@
  var https = require('https');
  var AWS = require('aws-sdk');
- AWS.config.update({region: 'us-east-1'});
-  exports.handler =  async (event, context, callback) => {
-      console.log(event)
-      let response = {};
-      let finalresp = {};
-      let body = {};
+ AWS.config.update({ region: 'us-east-1' });
+ exports.handler = async(event, context, callback) => {
+  console.log(event)
+  let response = {};
+  let finalresp = {};
+  let body = {};
 
-      var URLparams = {
-                    host: "quote.coins.ph",
-                    path: "/v2/markets/BTC-PHP"
-                    };
-if (Object.entries(event).length === 0) {
-    var scan = await dbScan({ TableName: 'DeviceTokens'});
-    var scanbody = {};
-    console.log(scan);
-    for (var i=0; i < scan.length; i++ ) {
-            var item = scan[i];
-           console.log(item);
-           scanbody = {
-               "invested_price": item.invested_price.N,
-               "token": item.devicetoken.S,
-               "bought_price": item.bought_price.N,
-               "desired_profit": item.desired_profit.N
-           }
-        await getRequest(URLparams,scanbody);
+  var URLparams = {
+   host: "quote.coins.ph",
+   path: "/v2/markets/BTC-PHP"
+  };
+  if (Object.entries(event).length === 0) {
+   var scan = await dbScan({ TableName: 'DeviceTokens' });
+   var scanbody = {};
+   console.log(scan);
+   for (var i = 0; i < scan.length; i++) {
+    var item = scan[i];
+    console.log(item);
+    scanbody = {
+     "invested_price": item.invested_price.N,
+     "token": item.devicetoken.S,
+     "bought_price": item.bought_price.N,
+     "desired_profit": item.desired_profit.N
     }
-}
-    if (event.httpMethod == 'POST') {
-        body = JSON.parse(event.body);
-          var dbparams = {
-  TableName: 'DeviceTokens',
-  Key: {
-    'devicetoken': {S: body.token}
+    await getRequest(URLparams, scanbody);
+   }
   }
-};
-    // The output from a Lambda proxy integration must be 
-    // in the following JSON object. The 'headers' property 
-    // is for custom response headers in addition to standard 
-    // ones. The 'body' property  must be a JSON string. For 
-    // base64-encoded payload, you must also set the 'isBase64Encoded'
-    // property to 'true'.
-    response = {
-        "isBase64Encoded": false,
-        "statusCode": 200,
-        "headers": {"content-Type": "application/json"},
-        "body": JSON.stringify(body)
-    };
-  await getRequest(URLparams,body);
-//   .then(data =>{
-//         console.log(data);
-//     }).catch((err) => {
-//         console.log(err);
-//     })
+  if (event.httpMethod == 'POST') {
+   body = JSON.parse(event.body);
+   var dbparams = {
+    TableName: 'DeviceTokens',
+    Key: {
+     'devicetoken': { S: body.token }
+    }
+   };
+   // The output from a Lambda proxy integration must be 
+   // in the following JSON object. The 'headers' property 
+   // is for custom response headers in addition to standard 
+   // ones. The 'body' property  must be a JSON string. For 
+   // base64-encoded payload, you must also set the 'isBase64Encoded'
+   // property to 'true'.
+   response = {
+    "isBase64Encoded": false,
+    "statusCode": 200,
+    "headers": { "content-Type": "application/json" },
+    "body": JSON.stringify(body)
+   };
+   await getRequest(URLparams, body);
+   await dbfunctions(dbparams, body)
+   //   .then(data =>{
+   //         console.log(data);
+   //     }).catch((err) => {
+   //         console.log(err);
+   //     })
 
-};
-    callback(null, response);
+  };
+  callback(null, response);
  };
- 
- function getRequest(params,body) {
-     return new Promise((resolve) => {
-             var req = https.get(params, function(res) {
+
+ function getRequest(params, body) {
+  return new Promise((resolve) => {
+   var req = https.get(params, function(res) {
     let data = '';
     // console.log('STATUS: ' + res.statusCode);
     res.setEncoding('utf8');
     res.on('data', function(chunk) {
-        data += chunk;
+     data += chunk;
     });
     res.on('end', async function() {
-        resolve(await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data =>{
-    }).catch((err) => {
-        console.log(err);
-    })
-    )});
+     resolve(await display(JSON.parse(data), body.invested_price, body.bought_price, body.desired_profit, body.token).then(data => {}).catch((err) => {
+      console.log(err);
+     }))
+    });
+   })
   })
-     })
 
-}
- 
-async function display(result, invested_price, bought_price, desired_profit, token) {
-     
-    var currentBTC = invested_price/bought_price;
-    var sell_price = Number(result.bid);
-    var coins_php_val = Number(result.bid) * currentBTC;
-    var profit = (Number(result.bid) * currentBTC) - invested_price;
-    var computed = {
-        "sell_price":sell_price,
-        "profit": profit,
-        "desired_profit":desired_profit,
-        "token": token,
-        "coins_php_val":coins_php_val,
-        "result": result
-    }
+ }
+
+ async function display(result, invested_price, bought_price, desired_profit, token) {
+
+  var currentBTC = invested_price / bought_price;
+  var sell_price = Number(result.bid);
+  var coins_php_val = Number(result.bid) * currentBTC;
+  var profit = (Number(result.bid) * currentBTC) - invested_price;
+  var computed = {
+   "sell_price": sell_price,
+   "profit": profit,
+   "desired_profit": desired_profit,
+   "token": token,
+   "coins_php_val": coins_php_val,
+   "result": result
+  }
   return await awsSNSfunctions(computed);
  }
-  
-  async function awsSNSfunctions(params) {
+
+ async function awsSNSfunctions(params) {
   var formatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'PHP'
-});
+   style: 'currency',
+   currency: 'PHP'
+  });
 
-if (params.profit > params.desired_profit){
-// if (true) {
-    console.log("-------------------PUBLISHING TO THE DEVICE----------------");
-    
-//CHANGE ARN to the right target
-const new_sns = new AWS.SNS({apiVersion:'2010-03-31'});
-var TargetArn;
-const PlatformApplicationArn = 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS';
-var listedEndpoints;
-var createEndpoints;
-const listparams = {
-  PlatformApplicationArn: PlatformApplicationArn
-};
+  if (params.profit > params.desired_profit) {
+   // if (true) {
+   console.log("-------------------PUBLISHING TO THE DEVICE----------------");
 
-listedEndpoints = await new_sns.listEndpointsByPlatformApplication(listparams, function(err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else     {
-      return data.Endpoints;
-  }
-}).promise();
-        console.log(listedEndpoints.Endpoints);
-      listedEndpoints.Endpoints.forEach(function (item) {
- if (item.Attributes.Token == params.token) {
+   //CHANGE ARN to the right target
+   const new_sns = new AWS.SNS({ apiVersion: '2010-03-31' });
+   var TargetArn;
+   const PlatformApplicationArn = 'arn:aws:sns:us-east-1:773314055569:app/GCM/CoinsNotifSNS';
+   var listedEndpoints;
+   var createEndpoints;
+   const listparams = {
+    PlatformApplicationArn: PlatformApplicationArn
+   };
+
+   listedEndpoints = await new_sns.listEndpointsByPlatformApplication(listparams, function(err, data) {
+    if (err) console.log(err, err.stack); // an error occurred
+    else {
+     return data.Endpoints;
+    }
+   }).promise();
+   console.log(listedEndpoints.Endpoints);
+   listedEndpoints.Endpoints.forEach(function(item) {
+    if (item.Attributes.Token == params.token) {
      TargetArn = item.EndpointArn;
- }
-});
-console.log("------------Target ARN from list: " + TargetArn)
+    }
+   });
+   console.log("------------Target ARN from list: " + TargetArn)
 
-if (!TargetArn) {
-  var paramscreate = {
- PlatformApplicationArn: PlatformApplicationArn,
-  Token: params.token
-};
-createEndpoints = await new_sns.createPlatformEndpoint(paramscreate,  function(err, data) {
-  if (err) console.log(err, err.stack); // an error occurred
-  else    {
-    //   console.log("------------from CreatePlatformEndpoint---------------");
-    //   console.log(data);
+   if (!TargetArn) {
+    var paramscreate = {
+     PlatformApplicationArn: PlatformApplicationArn,
+     Token: params.token
+    };
+    createEndpoints = await new_sns.createPlatformEndpoint(paramscreate, function(err, data) {
+     if (err) console.log(err, err.stack); // an error occurred
+     else {
+      //   console.log("------------from CreatePlatformEndpoint---------------");
+      //   console.log(data);
       return data.EndpointArn;
-  }         // successful response
-}).promise();
-console.log(createEndpoints);
-TargetArn = createEndpoints.EndpointArn;
-console.log("------------Target ARN from create: " + TargetArn);
-}
+     } // successful response
+    }).promise();
+    console.log(createEndpoints);
+    TargetArn = createEndpoints.EndpointArn;
+    console.log("------------Target ARN from create: " + TargetArn);
+   }
 
-    let payload = {
-        default: 'default',
-        GCM : {
-            notification: {
-                body: " Selling Price: " + formatter.format(params.sell_price) + 
-                "\n Total Price of your BTC on Coins: " + formatter.format(params.coins_php_val) +
-                "\n Total Profit: " + formatter.format(params.profit) ,
-                title: params.result.symbol,  
-                sound: "default"
-            }
-        }
-        
+   let payload = {
+    default: 'default',
+    GCM: {
+     notification: {
+      body: " Selling Price: " + formatter.format(params.sell_price) +
+       "\n Total Price of your BTC on Coins: " + formatter.format(params.coins_php_val) +
+       "\n Total Profit: " + formatter.format(params.profit),
+      title: params.result.symbol,
+      sound: "default"
+     }
     }
-    
-    payload.GCM = JSON.stringify(payload.GCM);
-    payload = JSON.stringify(payload);
-    const params_sns = {
-        Message: payload,
-        TargetArn: TargetArn,
-        MessageStructure: 'json'
-    }
-    console.log("------------------------FINAL MESSAGE---------------------");
-    console.log(params_sns);
-    
+
+   }
+
+   payload.GCM = JSON.stringify(payload.GCM);
+   payload = JSON.stringify(payload);
+   const params_sns = {
+    Message: payload,
+    TargetArn: TargetArn,
+    MessageStructure: 'json'
+   }
+   console.log("------------------------FINAL MESSAGE---------------------");
+   console.log(params_sns);
 
 
-    await new_sns.publish(params_sns).promise();
-};
-      
-  }
-  
-  async function dbfunctions(params,body){
-      var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
-// Call DynamoDB to read the item from the table
-var dataresp = await ddb.getItem(params, function(err, data) {
-  if (err) {
+   await new_sns.publish(params_sns).promise();
+  };
+
+ }
+
+ async function dbfunctions(params, body) {
+  var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
+
+  // Call DynamoDB to read the item from the table
+  var dataresp = await ddb.getItem(params, function(err, data) {
+   if (err) {
     console.log("Error", err);
-  } else {
+   }
+   else {
     // console.log("Success", data.Item);
     return data;
-  }
-}).promise();
-console.log("LIST")
-console.log(dataresp.Item);
+   }
+  }).promise();
+  console.log("LIST")
+  console.log(dataresp.Item);
 
-if (!dataresp.Item) {
-    console.log("-----INSERTING DATA ON DB-------");
-var insertparams = {
-  TableName: 'DeviceTokens',
-  Item: {
-    'invested_price' : {N: body.invested_price.toString()},
-    'devicetoken' : {S: body.token },
-    'bought_price' : {N: body.bought_price.toString()},
-    'desired_profit' : {N: body.desired_profit.toString()},
-  }
-};
+  if (!dataresp.Item) {
+   console.log("-----INSERTING DATA ON DB-------");
+   var insertparams = {
+    TableName: 'DeviceTokens',
+    Item: {
+     'invested_price': { N: body.invested_price.toString() },
+     'devicetoken': { S: body.token },
+     'bought_price': { N: body.bought_price.toString() },
+     'desired_profit': { N: body.desired_profit.toString() },
+    },
+    ReturnValues: "UPDATED_NEW"
+   };
 
-// Call DynamoDB to add the item to the table
-var insertedDB = await ddb.putItem(insertparams, function(err, data) {
-  if (err) {
-    console.log("Error", err);
-  } else {
-    // console.log("Success", data);
-    return data;
-  }
-}).promise();
-console.log(insertedDB);
-      dataresp.Item = insertparams;
-      
-  }
-      return dataresp.Item;
-      
-  }
-  
-  async function dbScan(params){
-      var ddb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
-      var scanItems = await ddb.scan(params, function(err, data) {
+   // Call DynamoDB to add the item to the table
+   var insertedDB = await ddb.putItem(insertparams, function(err, data) {
     if (err) {
-        console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
-    } else {
-        // print all the movies
-        // console.log("Scan succeeded.");
-      return data;
-  };
-    
-}).promise();
+     console.log("Error", err);
+    }
+    else {
+     // console.log("Success", data);
+     return data;
+    }
+   }).promise();
+   console.log(insertedDB);
+   dataresp.Item = insertparams;
 
-
-    return scanItems.Items;
   }
+  if(dataresp.Item.devicetoken.S) {
+   console.log("==============UPDATE=")
+   var updateparams = {
+     ExpressionAttributeNames: {
+      "#ip": "invested_price",
+      "#bp": "bought_price",
+      "#dp": "desired_profit"
+     },
+     ExpressionAttributeValues: {
+      ":ip": {
+       N: body.invested_price.toString()
+      },
+      ":bp": {
+       N: body.bought_price.toString()
+      },
+      ":dp" : {
+       N: body.desired_profit.toString()
+      }
+     },
+     Key: {
+      "devicetoken": { S: body.token }
+     },
+     ReturnValues: "ALL_NEW",
+     TableName: "DeviceTokens",
+     UpdateExpression: "SET #ip = :ip, #bp = :bp, #dp = :dp"
+    };
+  var updateItem = await ddb.updateItem(updateparams, function(err, data) {
+   if (err) console.log(err, err.stack); 
+   else    {
+    console.log(data);
+    return data;
+   }           
+ }).promise();
+ dataresp.Item = updateItem;
+  }
+  console.log(dataresp.Item);
+  return dataresp.Item;
+
+ }
+
+ async function dbScan(params) {
+  var ddb = new AWS.DynamoDB({ apiVersion: '2012-08-10' });
+  var scanItems = await ddb.scan(params, function(err, data) {
+   if (err) {
+    console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+   }
+   else {
+    // print all the movies
+    // console.log("Scan succeeded.");
+    return data;
+   };
+
+  }).promise();
+
+
+  return scanItems.Items;
+ }
+ 
