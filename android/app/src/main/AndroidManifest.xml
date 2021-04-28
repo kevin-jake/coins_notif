@@ -1,7 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.coins_notif">
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
    <application
-        android:label="coins_notif"
+        android:label="CoinsPh Notifier"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
