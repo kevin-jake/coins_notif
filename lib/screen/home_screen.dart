@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
+import 'package:pattern_formatter/pattern_formatter.dart';
+import 'package:money_formatter/money_formatter.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -86,6 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    MoneyFormatter bid = MoneyFormatter(amount: double.parse(btc_to_php.bid));
+    MoneyFormatter ask = MoneyFormatter(amount: double.parse(btc_to_php.ask));
+    MoneyFormatterOutput buy = bid.output;
+    MoneyFormatterOutput sell = ask.output;
+
     getToken();
     return Scaffold(
         appBar: AppBar(
@@ -108,6 +115,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             decoration: InputDecoration(
                                 border: OutlineInputBorder(),
                                 hintText: 'Enter Invested Price'),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              ThousandsFormatter(allowFraction: true)
+                            ],
                             controller: investController,
                           )),
                       Container(
@@ -164,15 +175,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           height: 2,
                         ),
-                        Text("Currency: ${btc_to_php.currency}"),
+                        Text("Sell Price: Php " + buy.nonSymbol),
                         Container(
                           height: 2,
                         ),
-                        Text("Sell Price: Php ${btc_to_php.bid}"),
-                        Container(
-                          height: 2,
-                        ),
-                        Text("Buy Price: Php ${btc_to_php.ask}"),
+                        Text("Buy Price: Php " + sell.nonSymbol),
                         Container(
                           height: 20,
                         ),
@@ -182,6 +189,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter Invested Price'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: investController,
                             )),
                         Container(
@@ -193,6 +204,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter bought Price'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: boughtController,
                             )),
                         Container(
@@ -204,6 +219,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter desired Profit'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: profitController,
                             )),
                         Container(height: 20),
@@ -248,6 +267,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter Invested Price'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: investController,
                             )),
                         Container(
@@ -259,6 +282,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter bought Price'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: boughtController,
                             )),
                         Container(height: 2),
@@ -268,6 +295,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               decoration: InputDecoration(
                                   border: OutlineInputBorder(),
                                   hintText: 'Enter desired Profit'),
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                ThousandsFormatter(allowFraction: true)
+                              ],
                               controller: profitController,
                             )),
                         Container(height: 20),
