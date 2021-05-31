@@ -95,9 +95,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
     getToken();
     return Scaffold(
-        appBar: AppBar(
-          title: Text("Get Exchange Rate"),
-        ),
         body: isLoading
             ? Container(
                 width: double.infinity,
